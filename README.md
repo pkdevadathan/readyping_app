@@ -91,7 +91,7 @@ NODE_ENV=development
 
 # MongoDB Connection
 MONGODB_URI=mongodb://localhost:27017/readyping
-# Or use MongoDB Atlas: mongodb+srv://your_username:your_password@your_cluster.mongodb.net/readyping
+# For MongoDB Atlas: Replace with your connection string from Atlas dashboard
 
 # JWT Secret
 JWT_SECRET=your_jwt_secret_key_here
@@ -139,11 +139,22 @@ static const String baseUrl = 'http://localhost:3000/api';
 
 ## 🗄️ Database Setup
 
-### MongoDB Local Setup
+### MongoDB Setup
 
-1. Install MongoDB locally or use MongoDB Atlas
-2. Create a database named `readyping`
-3. The collections will be created automatically when you first use the app
+#### Option 1: Local MongoDB
+1. Install MongoDB locally
+2. Start MongoDB service
+3. Create a database named `readyping`
+4. Use connection string: `mongodb://localhost:27017/readyping`
+
+#### Option 2: MongoDB Atlas (Cloud)
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a new cluster
+3. Create a database user with read/write permissions
+4. Get your connection string from the "Connect" button
+5. Replace the placeholder in `.env` with your actual connection string
+
+**Note:** The collections will be created automatically when you first use the app
 
 ### Sample Data
 
