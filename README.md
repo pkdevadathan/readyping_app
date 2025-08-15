@@ -80,6 +80,8 @@ flutter run
 
 ### Backend Environment Variables
 
+**⚠️ Security Note:** The examples below are placeholders. Never commit real credentials to version control. Use environment variables or secure secret management systems.
+
 Create a `.env` file in `readyping_backend/` with:
 
 ```env
@@ -89,7 +91,7 @@ NODE_ENV=development
 
 # MongoDB Connection
 MONGODB_URI=mongodb://localhost:27017/readyping
-# Or use MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/readyping
+# Or use MongoDB Atlas: mongodb+srv://your_username:your_password@your_cluster.mongodb.net/readyping
 
 # JWT Secret
 JWT_SECRET=your_jwt_secret_key_here
@@ -97,7 +99,7 @@ JWT_SECRET=your_jwt_secret_key_here
 # Twilio Configuration (for WhatsApp notifications)
 TWILIO_ACCOUNT_SID=your_twilio_account_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=whatsapp:+14155238886
+TWILIO_PHONE_NUMBER=whatsapp:+1234567890
 
 # Optional: Email service (for future implementation)
 EMAIL_SERVICE=gmail
