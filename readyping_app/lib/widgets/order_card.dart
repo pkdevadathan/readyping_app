@@ -15,6 +15,10 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -22,68 +26,53 @@ class OrderCard extends StatelessWidget {
           children: [
             // Header with Order ID and Status
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Order #${order.orderId}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        order.customerName,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondaryColor,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Order #${order.orderId}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: order.status.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: order.status.color.withOpacity(0.3),
-                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: order.status.color),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        order.status.icon,
-                        size: 16,
-                        color: order.status.color,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        order.status.displayName,
-                        style: TextStyle(
-                          color: order.status.color,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    order.status.displayName,
+                    style: TextStyle(
+                      color: order.status.color,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
-            // Phone Number
+            // Customer Info
             Row(
               children: [
-                Icon(
-                  Icons.phone,
-                  size: 16,
-                  color: AppTheme.textSecondaryColor,
+                const Icon(Icons.person, size: 16, color: AppTheme.textSecondaryColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    order.customerName,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.phone, size: 16, color: AppTheme.textSecondaryColor),
                 const SizedBox(width: 8),
                 Text(
                   order.phoneNumber,
@@ -93,16 +82,12 @@ class OrderCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
 
-            // Time Information
+            // Time Info
+            const SizedBox(height: 8),
             Row(
               children: [
-                Icon(
-                  Icons.schedule,
-                  size: 16,
-                  color: AppTheme.textSecondaryColor,
-                ),
+                const Icon(Icons.access_time, size: 16, color: AppTheme.textSecondaryColor),
                 const SizedBox(width: 8),
                 Text(
                   'Created: ${_formatTime(order.createdAt)}',
@@ -115,85 +100,75 @@ class OrderCard extends StatelessWidget {
                   Text(
                     'Ready: ${_formatTime(order.readyAt!)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.secondaryColor,
-                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textSecondaryColor,
                     ),
                   ),
                 ],
               ],
             ),
 
-            // Action Buttons
-            if (order.status != OrderStatus.completed) ...[
-              const SizedBox(height: 16),
+            // Notification Status
+            if (order.notificationSent) ...[
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  if (order.status == OrderStatus.pending) ...[
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _markAsReady(context),
-                        icon: const Icon(Icons.check_circle, size: 18),
-                        label: const Text('Mark Ready'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.secondaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
+                  const Icon(Icons.message, size: 16, color: Colors.green),
+                  const SizedBox(width: 8),
+                  Text(
+                    'WhatsApp notification sent',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.green,
                     ),
-                  ] else if (order.status == OrderStatus.ready) ...[
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _markAsCompleted(context),
-                        icon: const Icon(Icons.done_all, size: 18),
-                        label: const Text('Mark Completed'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accentColor,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(width: 12),
-                  IconButton(
-                    onPressed: () => _deleteOrder(context),
-                    icon: const Icon(Icons.delete_outline),
-                    color: AppTheme.errorColor,
-                    tooltip: 'Delete Order',
                   ),
                 ],
               ),
             ],
 
-            // Notification Status
-            if (order.notificationSent) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.secondaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+            // Action Buttons
+            const SizedBox(height: 16),
+            Consumer<OrderProvider>(
+              builder: (context, orderProvider, child) {
+                final isLoading = orderProvider.isLoading;
+                
+                return Row(
                   children: [
-                    Icon(
-                      Icons.message,
-                      size: 16,
-                      color: AppTheme.secondaryColor,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'WhatsApp notification sent',
-                      style: TextStyle(
-                        color: AppTheme.secondaryColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    if (order.status == OrderStatus.pending) ...[
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: isLoading ? null : () => _updateStatus(context, OrderStatus.ready),
+                          icon: const Icon(Icons.check_circle, size: 16),
+                          label: const Text('Mark Ready'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
                       ),
+                    ] else if (order.status == OrderStatus.ready) ...[
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: isLoading ? null : () => _updateStatus(context, OrderStatus.completed),
+                          icon: const Icon(Icons.done_all, size: 16),
+                          label: const Text('Mark Completed'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: isLoading ? null : () => _deleteOrder(context),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: 'Delete Order',
                     ),
                   ],
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -215,62 +190,70 @@ class OrderCard extends StatelessWidget {
     }
   }
 
-  void _markAsReady(BuildContext context) {
-    context.read<OrderProvider>().updateOrderStatus(order.id, OrderStatus.ready);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Order #${order.orderId} marked as ready!'),
-        backgroundColor: AppTheme.secondaryColor,
-        action: SnackBarAction(
-          label: 'Undo',
-          textColor: Colors.white,
-          onPressed: () {
-            context.read<OrderProvider>().updateOrderStatus(order.id, OrderStatus.pending);
-          },
-        ),
-      ),
-    );
+  Future<void> _updateStatus(BuildContext context, OrderStatus newStatus) async {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final success = await orderProvider.updateOrderStatus(order.orderId, newStatus);
+
+    if (context.mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Order marked as ${newStatus.displayName}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(orderProvider.error ?? 'Failed to update order status'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
-  void _markAsCompleted(BuildContext context) {
-    context.read<OrderProvider>().markOrderAsCompleted(order.id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Order #${order.orderId} completed!'),
-        backgroundColor: AppTheme.accentColor,
-      ),
-    );
-  }
-
-  void _deleteOrder(BuildContext context) {
-    showDialog(
+  Future<void> _deleteOrder(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Order'),
-        content: Text('Are you sure you want to delete Order #${order.orderId}?'),
+        content: Text('Are you sure you want to delete order #${order.orderId}?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<OrderProvider>().deleteOrder(order.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Order #${order.orderId} deleted'),
-                  backgroundColor: AppTheme.errorColor,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
-            ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      final success = await orderProvider.deleteOrder(order.orderId);
+
+      if (context.mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Order deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(orderProvider.error ?? 'Failed to delete order'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 } 

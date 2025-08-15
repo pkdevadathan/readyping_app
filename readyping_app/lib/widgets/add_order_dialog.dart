@@ -14,54 +14,45 @@ class _AddOrderDialogState extends State<AddOrderDialog> {
   final _formKey = GlobalKey<FormState>();
   final _orderIdController = TextEditingController();
   final _customerNameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  bool _isLoading = false;
+  final _phoneNumberController = TextEditingController();
+  final _notesController = TextEditingController();
 
   @override
   void dispose() {
     _orderIdController.dispose();
     _customerNameController.dispose();
-    _phoneController.dispose();
+    _phoneNumberController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
   Future<void> _addOrder() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final success = await orderProvider.addOrder(
+      orderId: _orderIdController.text,
+      customerName: _customerNameController.text,
+      phoneNumber: _phoneNumberController.text,
+      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+    );
 
-    try {
-      await context.read<OrderProvider>().addOrder(
-        _orderIdController.text.trim(),
-        _customerNameController.text.trim(),
-        _phoneController.text.trim(),
-      );
-
-      if (mounted) {
-        Navigator.pop(context);
+    if (mounted) {
+      if (success) {
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Order #${_orderIdController.text.trim()} added successfully!'),
-            backgroundColor: AppTheme.secondaryColor,
+          const SnackBar(
+            content: Text('Order created successfully!'),
+            backgroundColor: Colors.green,
           ),
         );
-      }
-    } catch (e) {
-      if (mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add order: $e'),
-            backgroundColor: AppTheme.errorColor,
+            content: Text(orderProvider.error ?? 'Failed to create order'),
+            backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
       }
     }
   }
@@ -69,8 +60,10 @@ class _AddOrderDialogState extends State<AddOrderDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -78,53 +71,53 @@ class _AddOrderDialogState extends State<AddOrderDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
               Row(
                 children: [
                   Icon(
                     Icons.add_circle_outline,
                     color: AppTheme.primaryColor,
-                    size: 24,
+                    size: 28,
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'Add New Order',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
-              // Order ID Field
+              // Order ID
               TextFormField(
                 controller: _orderIdController,
                 decoration: const InputDecoration(
                   labelText: 'Order ID',
-                  prefixIcon: Icon(Icons.receipt),
                   hintText: 'e.g., ORD001',
+                  prefixIcon: Icon(Icons.tag),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter an order ID';
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter order ID';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
 
-              // Customer Name Field
+              // Customer Name
               TextFormField(
                 controller: _customerNameController,
                 decoration: const InputDecoration(
                   labelText: 'Customer Name',
+                  hintText: 'Enter customer name',
                   prefixIcon: Icon(Icons.person),
-                  hintText: 'e.g., John Doe',
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  if (value == null || value.isEmpty) {
                     return 'Please enter customer name';
                   }
                   return null;
@@ -132,50 +125,73 @@ class _AddOrderDialogState extends State<AddOrderDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Phone Number Field
+              // Phone Number
               TextFormField(
-                controller: _phoneController,
+                controller: _phoneNumberController,
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'Phone Number',
-                  prefixIcon: Icon(Icons.phone),
                   hintText: '+1234567890',
+                  prefixIcon: Icon(Icons.phone),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
+                  if (value == null || value.isEmpty) {
                     return 'Please enter phone number';
                   }
-                  if (value.trim().length < 10) {
+                  if (value.length < 10) {
                     return 'Please enter a valid phone number';
                   }
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+
+              // Notes
+              TextFormField(
+                controller: _notesController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Notes (Optional)',
+                  hintText: 'Any special instructions...',
+                  prefixIcon: Icon(Icons.note),
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 24),
 
-              // Action Buttons
+              // Buttons
               Row(
                 children: [
                   Expanded(
                     child: TextButton(
-                      onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      onPressed: () => Navigator.of(context).pop(),
                       child: const Text('Cancel'),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _addOrder,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text('Add Order'),
+                    child: Consumer<OrderProvider>(
+                      builder: (context, orderProvider, child) {
+                        return ElevatedButton(
+                          onPressed: orderProvider.isLoading ? null : _addOrder,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          child: orderProvider.isLoading
+                              ? const SizedBox(
+                                  height: 16,
+                                  width: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Text('Add Order'),
+                        );
+                      },
                     ),
                   ),
                 ],
